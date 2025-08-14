@@ -272,9 +272,5 @@ SUCCESS: Length extension attack worked!
    - 模块化设计便于集成
    - 提供批量处理接口
 
-## 注意事项
 
-1. 长度扩展攻击演示仅用于教育目的，展示了SM3作为Merkle-Damgård结构哈希算法的潜在弱点
-2. 在实际应用中，应对密钥哈希使用HMAC等构造来防止此类攻击
-3. AVX2优化需要支持该指令集的CPU
 
