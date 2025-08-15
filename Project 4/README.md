@@ -134,19 +134,27 @@ V^(i+1) = CF(V^(i), B^(i))
 在压缩函数中，使用了一些布尔函数、置换函数和常量，它们的定义随迭代轮数 $j$ 的变化而变化。
 
 - **常量 $T_j$**:
+  ```
   0 ≤ j ≤ 15: 0x79cc4519
   16 ≤ j ≤ 63: 0x7a879d8a
+  ```
 
 - **布尔函数 $FF_j$**:
+  ```
   0 ≤ j ≤ 15: FF_j(X,Y,Z) = X XOR Y XOR Z
   16 ≤ j ≤ 63: FF_j(X,Y,Z) = (X AND Y) OR (X AND Z) OR (Y AND Z)
+  ```
 
 - **布尔函数 $GG_j$**:
+  ```
   0 ≤ j ≤ 15: GG_j(X,Y,Z) = X XOR Y XOR Z
   16 ≤ j ≤ 63: GG_j(X,Y,Z) = (X AND Y) OR ((NOT X) AND Z)
+  ```
 
 - **置换函数 $P_0$**:
+  ```
   P0(X) = X XOR (X <<< 9) XOR (X <<< 17)
+  ```
 
 ### 5. 输出最终杂凑值
 
@@ -287,6 +295,7 @@ SUCCESS: Length extension attack worked!
 3. **可扩展性**：
    - 模块化设计便于集成
    - 提供批量处理接口
+
 
 
 
