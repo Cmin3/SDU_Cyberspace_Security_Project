@@ -89,62 +89,71 @@ $V^{(0)} = IV = A_0B_0C_0D_0E_0F_0G_0H_0$
 - $G_0 = \text{0xe38dee4d}$
 - $H_0 = \text{0xb0fb0e4e}$
 
-#### 4.2. 压缩函数 $CF$
+#### 4.2. 压缩函数 CF
 
-对于每个消息分组 $B^{(i)}$ ($i = 0, \dots, n-1$)，执行以下计算：
+对于每个消息分组 B^(i) (i = 0, ..., n-1)，执行以下计算：
 
-$V^{(i+1)} = CF(V^{(i)}, B^{(i)})$
+V^(i+1) = CF(V^(i), B^(i))
 
-压缩函数 $CF$ 的内部逻辑如下：
+压缩函数 CF 的内部逻辑如下：
 
-1.  **初始化寄存器**:
-    - 将当前的256位中间哈希值 $V^{(i)}$ 分解为8个32位的寄存器：$A, B, C, D, E, F, G, H$。
-    - 即 $(A, B, C, D, E, F, G, H) \leftarrow V^{(i)}$。
+1. **初始化寄存器**:
+   - 将当前的256位中间哈希值 V^(i) 分解为8个32位的寄存器：A, B, C, D, E, F, G, H
+   - 即 (A, B, C, D, E, F, G, H) <- V^(i)
 
-2.  **64轮迭代**:
-    进行64轮迭代（$j = 0, 1, \dots, 63$），每轮更新寄存器的值。在第 $j$ 轮中，使用消息扩展生成的 $W_j$ 和 $W'_j$。
+2. **64轮迭代**:
+   进行64轮迭代（j = 0, 1, ..., 63），每轮更新寄存器的值。在第 j 轮中：
+   
+   - 计算中间变量：
+     ```
+     SS1 = ((A <<< 12) + E + (T_j <<< j)) <<< 7
+     SS2 = SS1 XOR (A <<< 12)
+     TT1 = FF_j(A,B,C) + D + SS2 + W'_j
+     TT2 = GG_j(E,F,G) + H + SS1 + W_j
+     ```
+   
+   - 更新寄存器：
+     ```
+     D <- C
+     C <- B <<< 9
+     B <- A
+     A <- TT1
+     H <- G
+     G <- F <<< 19
+     F <- E
+     E <- P0(TT2)
+     ```
 
-    - **计算中间变量**:
-      $$ SS1 = ((A \lll 12) + E + (T_j \lll j)) \lll 7 $$
-      $$ SS2 = SS1 \oplus (A \lll 12) $$
-      $$ TT1 = FF_j(A, B, C) + D + SS2 + W'_j $$
-      $$ TT2 = GG_j(E, F, G) + H + SS1 + W_j $$
+3. **更新中间哈希值**:
 
-    - **更新寄存器**:
-      $$ D \leftarrow C $$
-      $$ C \leftarrow B \lll 9 $$
-      $$ B \leftarrow A $$
-      $$ A \leftarrow TT1 $$
-      $$ H \leftarrow G $$
-      $$ G \leftarrow F \lll 19 $$
-      $$ F \leftarrow E $$
-      $$ E \leftarrow P_0(TT2) $$
-
-3.  **更新中间哈希值**:
     将本轮压缩的输出与输入的中间哈希值进行异或运算，得到新的中间哈希值：
-    $$ V^{(i+1)} \leftarrow (A || B || C || D || E || F || G || H) \oplus V^{(i)} $$
+    V^(i+1) <- (A || B || C || D || E || F || G || H) XOR V^(i)
 
 #### 4.3. 关键函数和常量
 
 在压缩函数中，使用了一些布尔函数、置换函数和常量，它们的定义随迭代轮数 $j$ 的变化而变化。
 
 - **常量 $T_j$**:
-  $$ T_j = \begin{cases} \text{0x79cc4519} & 0 \le j \le 15 \\ \text{0x7a879d8a} & 16 \le j \le 63 \end{cases} $$
+  0 ≤ j ≤ 15: 0x79cc4519
+  16 ≤ j ≤ 63: 0x7a879d8a
 
 - **布尔函数 $FF_j$**:
-  $$ FF_j(X, Y, Z) = \begin{cases} X \oplus Y \oplus Z & 0 \le j \le 15 \\ (X \wedge Y) \vee (X \wedge Z) \vee (Y \wedge Z) & 16 \le j \le 63 \end{cases} $$
+  0 ≤ j ≤ 15: FF_j(X,Y,Z) = X XOR Y XOR Z
+  16 ≤ j ≤ 63: FF_j(X,Y,Z) = (X AND Y) OR (X AND Z) OR (Y AND Z)
 
 - **布尔函数 $GG_j$**:
-  $$ GG_j(X, Y, Z) = \begin{cases} X \oplus Y \oplus Z & 0 \le j \le 15 \\ (X \wedge Y) \vee (\neg X \wedge Z) & 16 \le j \le 63 \end{cases} $$
+  0 ≤ j ≤ 15: GG_j(X,Y,Z) = X XOR Y XOR Z
+  16 ≤ j ≤ 63: GG_j(X,Y,Z) = (X AND Y) OR ((NOT X) AND Z)
 
 - **置换函数 $P_0$**:
-  $$ P_0(X) = X \oplus (X \lll 9) \oplus (X \lll 17) $$
+  P0(X) = X XOR (X <<< 9) XOR (X <<< 17)
 
 ### 5. 输出最终杂凑值
 
 在处理完所有 $n$ 个消息分组后，得到的 $V^{(n)}$ 就是最终的杂凑值。将 $V^{(n)}$ 的8个32位字按大端序拼接起来，就得到了256位的最终输出结果。
 
-$$ \text{Hash} = V^{(n)} = V^{(n)}_A || V^{(n)}_B || V^{(n)}_C || V^{(n)}_D || V^{(n)}_E || V^{(n)}_F || V^{(n)}_G || V^{(n)}_H $$
+Hash = V^(n)_A || V^(n)_B || V^(n)_C || V^(n)_D ||
+V^(n)_E || V^(n)_F || V^(n)_G || V^(n)_H
 
 ## 三. 文件说明
 
@@ -278,6 +287,7 @@ SUCCESS: Length extension attack worked!
 3. **可扩展性**：
    - 模块化设计便于集成
    - 提供批量处理接口
+
 
 
 
